@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<title>ViaMichelin JavaScript API V2 - Calculate a distance matrix</title>
+		<style type="text/css">
+			table{border-collapse:collapse}
+			th{background-color:#9ff}
+		</style>
+	</head>
+	<body onload="fLoadMatrix()">
+		<h2>Distance Matrix with 'Recommanded by Michelin' itinerary type</h2>
+		<div id="results"></div>
+		<script
+    src="https://secure-apijs.viamichelin.com/apijsv2/api/js?key=JSV2GP20200329183443224958534115$165380&lang=fra&protocol=https"
+    type="text/javascript"></script>
+		<script type="text/javascript">
+			var addresses = new Array();
+			addresses.push({city:"Aix-en-provence", countryISOCode:"FRA", cityname:"Marseille"});
+			addresses.push({city:"AMIENS", countryISOCode:"FRA", cityname:"Amiens"});
+			addresses.push({city:"Talence", countryISOCode:"FRA", cityname:"Bordeaux"});
+			addresses.push({city:"Saint Martin d'Hères", countryISOCode:"FRA", cityname:"Grenoble"});
+			addresses.push({city:"Villeneuve d'Ascq Cedex", countryISOCode:"FRA", cityname:"Lille"});
+			addresses.push({city:"PARIS Cedex 16", countryISOCode:"FRA", cityname:"Dauphine"});
+			addresses.push({city:"Villeurbanne", countryISOCode:"FRA", cityname:"Lyon"});
+			addresses.push({city:"Mulhouse", countryISOCode:"FRA", cityname:"Mulhouse"});
+			addresses.push({city:"Nancy", countryISOCode:"FRA", cityname:"Nancy"});
+			addresses.push({city:"Nanterre", countryISOCode:"FRA", cityname:"Nanterre"});
+			addresses.push({city:"Nantes", countryISOCode:"FRA", cityname:"Nantes"});
+			addresses.push({city:"Nice", countryISOCode:"FRA", cityname:"Nice"});
+			addresses.push({city:"Orleans", countryISOCode:"FRA", cityname:"Orleans"});
+			addresses.push({city:"Évry", countryISOCode:"FRA", cityname:"Evry"});
+			addresses.push({city:"Orsay", countryISOCode:"FRA", cityname:"Orsay"});
+			addresses.push({city:"RENNES", countryISOCode:"FRA", cityname:"Rennes"});
+			addresses.push({city:"Sorbonne", countryISOCode:"FRA", cityname:"Sorbonne"});
+			addresses.push({city:"Toulouse", countryISOCode:"FRA", cityname:"Toulouse"});
+			
+
+			
+
+			function fLoadMatrix(){
+				var out = "<table border='1'><tr><td>&nbsp;</td>";
+				for(var i=0; i < addresses.length; ++i){
+					out += "<th>" + addresses[i].cityname + "</th>";
+				}
+				out += '</tr>';
+				for(i=0; i < addresses.length; ++i){
+					out += "<tr><th>" + addresses[i].cityname + "</th>";
+					for(var j=0; j < addresses.length; ++j) {
+						out += "<td id='"+ i + '_' + j +"'> </td>";
+					}
+					out += "</tr>";	
+				}
+				out += '</table>';
+				$_id("results").innerHTML = out;
+				//Geocode all addresses in one call
+				VMLaunch("ViaMichelin.Api.Geocoding", addresses,{
+															onSuccess : function (results) {
+																for(i=0; i < results.length; ++i){
+																	for(j=i+1; j < results.length; ++j) {
+																
+																		fLaunchRoutePlanner(results[i][0].coords, results[j][0].coords, i, j)
+																		//await timeout(3000);
+																	}
+																}
+															},
+															onError : function (error) {
+																alert('Whoops! ' + error);
+															}});
+		};//fLoadMatrix
+			
+		function fLaunchRoutePlanner(coordsA, coordsB, i, j){
+			VMLaunch("ViaMichelin.Api.Itinerary", {
+						steps:[//Array of Geo coodinates
+							{coords: coordsA}, 
+							{coords: coordsB}
+						],
+						data: ViaMichelin.Api.Constants.Itinerary.DATA.HEADER
+					},{
+						onSuccess : function (result) {
+							console.log(result)
+							$_id(i + '_' + j).innerHTML = $_id(j + '_' + i).innerHTML  = result.header.summaries[0].tollCost.car/100;
+						},
+						onError : function (error) {
+							alert('Whoops! ' + error);
+						}});					
+			};//fLaunchRoutePlanner
+		</script>
+	</body>
+</html>
